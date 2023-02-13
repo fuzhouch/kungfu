@@ -22,6 +22,8 @@
 #    win32. In Linux the build always fail due to this. 
 
 echo Step 0: Install node v10.24.1 with nvm
+unset npm_config_prefix
+source /usr/share/nvm/init-nvm.sh
 nvm install 10.24.1
 
 echo Step 1: Use node v10.24.1. On errors, stop and check nvm installation.
@@ -44,6 +46,7 @@ rm -rf ./build
 mkdir ./build
 cd ./build
 export CXXFLAGS="-I${NAN_INCLUDE_PATH} -I${NODE_INCLUDE_PATH}"
-cmake -DSPDLOG_LOG_LEVEL_COMPILE=SPDLOG_LEVEL_INFO ../
+echo Add CXXFLAGS: $CXXFLAGS
+cmake -DSPDLOG_LOG_LEVEL_COMPILE=SPDLOG_LEVEL_INFO -DCMAKE_BUILD_TYPE=Release ..
 echo All done. Now really perform builds by command:
 echo 'cd ./build/ && make'
