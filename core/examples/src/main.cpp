@@ -6,6 +6,7 @@
 
 namespace kjournal = kungfu::yijinjing::journal;
 namespace kdata = kungfu::yijinjing::data;
+namespace kdemo = kungfudemo;
 
 int main(int argc, char* argv[])
 {
@@ -13,7 +14,12 @@ int main(int argc, char* argv[])
     kdata::category c = kdata::category::SYSTEM; // What's MD/TD?
     std::string g = "test_group";
     std::string n = "test_name";
-    kdata::locator_ptr l;
-    kdata::location_ptr loc(new kdata::location(m, c, g, n, l));
+    bool writing = true;
+    bool lazy = false;
+
+    kdata::locator_ptr locator(new kdemo::MimicLocator("."));
+    kdata::location_ptr location(new kdata::location(m, c, g, n, locator));
+    kjournal::journal_ptr journal(new kjournal::journal(location, 0, writing, lazy));
+    kjournal::writer_ptr writer(new kjournal::writer(location, 0, lazy, nullptr));
     return 0;
 }
