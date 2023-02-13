@@ -320,3 +320,8 @@ else (SQLITECPP_BUILD_TESTS)
     message(STATUS "SQLITECPP_BUILD_TESTS OFF")
 endif (SQLITECPP_BUILD_TESTS)
 
+# Add installation path for .so and headers.
+INCLUDE(GNUInstallDirs)
+SET(SQLiteCpp_build_include_dir "${SQLiteCpp_SOURCE_DIR}/include/SQLiteCpp")
+INSTALL(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+INSTALL(DIRECTORY ${SQLiteCpp_build_include_dir} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")

@@ -44,9 +44,18 @@ sed -i '1281s/int dummy;/int dummy = 0;/' ${WARNING_FILE}
 echo Step 4: Create Makefile by CMake. Makefile is located at ./build
 rm -rf ./build
 mkdir ./build
-cd ./build
+pushd ./build
 export CXXFLAGS="-I${NAN_INCLUDE_PATH} -I${NODE_INCLUDE_PATH}"
 echo Add CXXFLAGS: $CXXFLAGS
-cmake -DSPDLOG_LOG_LEVEL_COMPILE=SPDLOG_LEVEL_INFO -DCMAKE_BUILD_TYPE=Release ..
-echo All done. Now really perform builds by command:
-echo 'cd ./build/ && make'
+cmake -DFMT_INSTALL=1 \
+      -DSPDLOG_LOG_LEVEL_COMPILE=SPDLOG_LEVEL_INFO \
+      -DCMAKE_INSTALL_PREFIX=$HOME/.local/kungfu \
+      -DCMAKE_BUILD_TYPE=Release ..
+popd
+
+INSTALL_TO=$HOME/.local/kungfu
+echo Step 5: Install headers and libraries to ${INSTALL_TO}
+pushd ./build && \
+    cmake --build . --verbose --config Release && \
+    cmake --install . --prefix=${INSTALL_TO}
+popd

@@ -85,7 +85,6 @@ INCLUDE_DIRECTORIES(deps/googletest-1.9.0/include)
 
 ADD_SUBDIRECTORY(deps)
 ADD_SUBDIRECTORY(cpp)
-ADD_SUBDIRECTORY(examples)
 
 ############################################################
 

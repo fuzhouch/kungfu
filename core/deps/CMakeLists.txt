@@ -1,6 +1,8 @@
 PROJECT(kungfu-deps)
 
 ############################################################
+ADD_SUBDIRECTORY(spdlog-1.3.1)
+ADD_SUBDIRECTORY(rxcpp-4.1.0)
 
 ADD_SUBDIRECTORY(pybind11-2.2.4)
 
