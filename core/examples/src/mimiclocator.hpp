@@ -2,7 +2,6 @@
 #define _MIMIC_LOCATOR_HPP_
 
 #include <string>
-#include <filesystem>
 #include <kungfu/yijinjing/common.h>
 #include <kungfu/yijinjing/journal/journal.h>
 

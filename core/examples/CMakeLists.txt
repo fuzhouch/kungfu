@@ -25,5 +25,7 @@ LINK_DIRECTORIES("${KF_SDK_HOME}/lib")
 
 ADD_EXECUTABLE(yijinjing-demo
     src/main.cpp
-    src/mimiclocator.cpp)
+    src/mimiclocator.cpp
+    src/consoleprintpublisher.cpp)
+
 TARGET_LINK_LIBRARIES(yijinjing-demo yijinjing fmt SQLiteCpp)
