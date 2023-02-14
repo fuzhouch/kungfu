@@ -21,7 +21,6 @@ const std::string MimicLocator::get_env(const std::string& name) const
 const std::string MimicLocator::layout_dir(kdata::location_ptr loc,
         kdata::layout l) const
 {
-
     std::string m = kungfu::yijinjing::data::get_mode_name(loc->mode);
     std::string c = kungfu::yijinjing::data::get_category_name(loc->category);
     std::string la = kungfu::yijinjing::data::get_layout_name(l);
@@ -67,10 +66,44 @@ const std::string MimicLocator::default_to_system_db(
 const std::vector<int> MimicLocator::list_page_id(kdata::location_ptr loc,
         uint32_t dest_id) const
 {
-    // TODO: Check python/kungfu/yijinjing/journal.py
-    // Appears it enumerates all .journal files from given location,
-    // but why do we need to do that?
-    return std::vector<int>();
+    // TODO
+    // The logic is translated from python/kungfu/yijinjing/journal.py.
+    // The layout value is hardcoded to JOURNAL just following Python
+    // code. In our C++ code it's called by page::load(), which is also
+    // hardcoded.
+    //
+    // The behavior seems to be a possible problem when list_page_id()
+    // is called by other classes, but let's keep it as is.
+    std::string layout_dir_path = layout_dir(loc, kdata::layout::JOURNAL);
+    std::filesystem::path dir(layout_dir_path);
+
+    std::vector<int> page_ids;
+    for (auto const& dir_entry: std::filesystem::directory_iterator(dir))
+    {
+        // Note that the logic here is weaker than its python brother.
+        // We just check file extension instead of checking file path
+        // pattern, but so far it should be fine.
+        std::string filename(dir_entry.path().filename());
+        std::string ext(dir_entry.path().extension());
+        if (ext == ".journal") {
+            // Filename format looks like this: NNNNNNNN.MM.journal.
+            // The page_id we are looking for is MM. Note that MM is
+            // always a number (\d+)
+            auto first_dot_pos = filename.find(".");
+            auto second_dot_pos = filename.find(".", first_dot_pos + 1);
+            if (first_dot_pos == std::string::npos ||
+                    second_dot_pos == std::string::npos)
+            {
+                continue;
+            }
+            std::string page_id_str = filename.substr(
+                    first_dot_pos + 1,
+                    second_dot_pos - first_dot_pos - 1);
+            int page_id = std::stoi(page_id_str);
+            page_ids.push_back(page_id);
+        }
+    }
+    return page_ids;
 }
 
 } // namespace kungfudemo

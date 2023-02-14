@@ -35,6 +35,9 @@ int main(int argc, char* argv[])
                 "test_group",
                 "test_name",
                 locator);
+    // location maintains an important concept: the uid_ member. It's
+    // hash value of provided file path. Supposed it can be used to
+    // represent a set of journal pages.
 
     // Now let's create a writer. On creation, a filer under current
     // folder is created, with name like below:
@@ -51,5 +54,10 @@ int main(int argc, char* argv[])
     bool lazy = false;
     kjournal::writer_ptr writer = std::make_shared<kjournal::writer>(location,
             dest_id, lazy, publisher);
+
+    // Internally writer maintains frame IDs, which is computed by
+    // location::uid_. Thought we technically can, but better not
+    // setting dest_id to 0.
+    std::cout << "location->uid: " << location->uid << std::endl;
     return 0;
 }
