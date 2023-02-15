@@ -14,6 +14,7 @@ public:
     virtual ~ConsolePrintPublisher() = default;
 
     int notify() override;
+
     int publish(const std::string& json_message) override;
 };
 
