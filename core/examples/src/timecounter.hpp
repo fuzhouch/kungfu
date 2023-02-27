@@ -18,13 +18,14 @@ namespace kungfudemo {
 class ThreadUnsafePerCountTimer
 {
 public:
-    ThreadUnsafePerCountTimer(uint64_t call_count):
-        call_count_(call_count)
-        , call_duration_ns_vec_(call_count, 0)
+    ThreadUnsafePerCountTimer(uint64_t max_call_count):
+        max_call_count_(max_call_count)
+        , call_count_(0)
+        , call_duration_ns_vec_(max_call_count, 0)
         , max_call_ns_(0)
         , min_call_ns_(0)
     {
-        std::fill_n(std::back_inserter(call_duration_ns_vec_), call_count, 0);
+        std::fill_n(std::back_inserter(call_duration_ns_vec_), max_call_count, 0);
     }
     ~ThreadUnsafePerCountTimer() = default;
 
@@ -108,6 +109,7 @@ public:
     }
 
 private:
+    uint64_t max_call_count_;
     uint64_t call_count_;
     std::vector<uint64_t> call_duration_ns_vec_;
     uint64_t max_call_ns_;
