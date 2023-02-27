@@ -66,8 +66,8 @@ int main(int argc, char* argv[])
             publisher); });
 
     std::cout 
-        << "time spent on creation(microseconds): "
-        << creation_timer.total_time_microseconds()
+        << "time spent on creation(milliseconds): "
+        << creation_timer.total_time_milliseconds()
         << std::endl;
 
     // After writer is created, a filer under current folder is created

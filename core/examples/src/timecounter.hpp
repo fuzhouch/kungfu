@@ -169,7 +169,7 @@ public:
         return ((double)total_time_ns_ / call_count_);
     }
 
-    double total_time_microseconds()
+    double total_time_milliseconds()
     {
         return double(total_time_ns_ / 1000000);
     }
