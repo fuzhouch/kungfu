@@ -15,8 +15,10 @@ int ConsolePrintPublisher::notify()
     // empty json, or just return 0.
     //
     // What the biz value of this function?
+    /*
     std::cout << "ConsolePrintPublisher::notify(): called by writer->close_frame()"
         << std::endl;
+    */
     return 0;
 }
 

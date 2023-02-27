@@ -7,6 +7,7 @@
 #include <kungfu/yijinjing/journal/journal.h>
 #include "mimiclocator.hpp"
 #include "consoleprintpublisher.hpp"
+#include "timecounter.hpp"
 
 namespace ky = kungfu::yijinjing;
 namespace kjournal = kungfu::yijinjing::journal;
@@ -50,16 +51,24 @@ int main(int argc, char* argv[])
             "parent",
             locator);
     uint32_t dest_id = parent_location->uid;
-    std::cout << "parent dest_id" << std::hex << dest_id << std::endl;
+    std::cout << "parent dest_id" << std::hex << dest_id << std::dec << std::endl;
 
     // Publisher object is required, or it can cause crash on close_frame().
     ky::publisher_ptr publisher = std::make_shared<kdemo::ConsolePrintPublisher>();
     bool lazy = false;
-    kjournal::writer_ptr writer = std::make_shared<kjournal::writer>(
+    kdemo::ThreadUnsafeTimer creation_timer;
+    kjournal::writer_ptr writer;
+    
+    creation_timer.time_it([&]{ writer = std::make_shared<kjournal::writer>(
             location,
             dest_id,
             lazy,
-            publisher);
+            publisher); });
+
+    std::cout 
+        << "time spent on creation(microseconds): "
+        << creation_timer.total_time_microseconds()
+        << std::endl;
 
     // After writer is created, a filer under current folder is created
     // with name like below:
@@ -76,22 +85,62 @@ int main(int argc, char* argv[])
     // 2. category == TD or strategy && dest_id != 0: 4MiB
     // 3. others: 1MiB
 
-
+    kdemo::ThreadUnsafePerCountTimer timer(1000000);
     // Now we have a file created (a page). We can write data.
     // writer internally hosts a journal data structure, and journal
     // decides which page to write to. The performance is ensured by
     // operating files via mmap.
     int64_t trigger_time = 0;
     int32_t msg_type = 1; // Biz type in kungfu/wingchun/msg.h
-    for (int i = 0; i < 100000; ++i) {
+    for (int i = 0; i < 1000000; ++i) {
         std::stringstream data_stream;
         trigger_time = kungfu::yijinjing::time::now_in_nano();
-        data_stream << "i=" << i << ",time=" << trigger_time << ",data=hello";
-        writer->write(trigger_time, msg_type, data_stream.str());
+
+        // Content to write
+        data_stream
+            << "i=" << i
+            << ",time=" << trigger_time
+            << ",data=hello";
+
+        timer.time_it([&]{
+            writer->write(trigger_time, msg_type, data_stream.str());
+        });
     }
+
+    std::cout << "count: " << timer.call_count() << std::endl;
+    std::cout << "total(ns): " << timer.total_time_ns() << std::endl;
+    std::cout << "avg(ns): " << timer.avg_time_ns() << std::endl;
+    std::cout << "max(ns): " << timer.max_time_ns() << std::endl;
+    std::cout << "min(ns): " << timer.min_time_ns() << std::endl;
+    std::cout << "25tile(ns): " << timer.quantile(0.25) << std::endl;
+    std::cout << "50tile(ns): " << timer.quantile(0.50) << std::endl;
+    std::cout << "75tile(ns): " << timer.quantile(0.75) << std::endl;
+    std::cout << "95tile(ns): " << timer.quantile(0.95) << std::endl;
+    std::cout << "99tile(ns): " << timer.quantile(0.99) << std::endl;
+    std::cout << "99.9tile(ns): " << timer.quantile(0.999) << std::endl;
 
     // A second challenge is on reader: It provides a join() operation.
     // How does it use seek_time?
+    // Let's pause here.
 
+
+    // Let's design an example benchmark app. Requirements:
+    // 1. One producer, multiple consumers.
+    // 2. Consumer should run either in and out of process.
+    // 3. Measure end-to-end latency
+    //
+    // Key question: what's the measuring target?
+    // - Chain 1: Writer side: event generation -> arrive disk
+    // - Chain 2: Reader side: read disk -> data read
+    // - End-to-end: From event generation to data read
+    //
+    // From API, we can safely assume writer->write() has safely written
+    // data into disk.
+    //
+    // As for reader - Use join to add a journal - It support multiple
+    // journals and support sort() API - it checks which journal
+    // contains last data.
+    
     return 0;
 }
+
