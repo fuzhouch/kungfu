@@ -23,7 +23,7 @@
 
 echo Step 0: Install node v10.24.1 with nvm
 unset npm_config_prefix
-source /usr/share/nvm/init-nvm.sh
+source ${HOME}/.nvm/nvm.sh
 nvm install 10.24.1
 
 echo Step 1: Use node v10.24.1. On errors, stop and check nvm installation.
@@ -41,21 +41,31 @@ WARNING_FILE='deps/googletest-1.9.0/googletest/src/gtest-death-test.cc'
 git checkout -- ${WARNING_FILE}
 sed -i '1281s/int dummy;/int dummy = 0;/' ${WARNING_FILE}
 
+echo Step 3.5: Detect python
+PYTHON3_CONFIG=`which python3-config`
+
+if [ "$PYTHON3_CONFIG" = "" ]; then
+    echo ERROR: There is no python3-config detected.
+    exit 1
+fi
+
 echo Step 4: Create Makefile by CMake. Makefile is located at ./build
 rm -rf ./build
 mkdir ./build
 pushd ./build
+INSTALL_TO=$HOME/.local/kungfu
 export CXXFLAGS="-I${NAN_INCLUDE_PATH} -I${NODE_INCLUDE_PATH}"
 echo Add CXXFLAGS: $CXXFLAGS
 cmake -DFMT_INSTALL=1 \
       -DSPDLOG_LOG_LEVEL_COMPILE=SPDLOG_LEVEL_INFO \
-      -DCMAKE_INSTALL_PREFIX=$HOME/.local/kungfu \
-      -DCMAKE_BUILD_TYPE=Release ..
+      -DCMAKE_INSTALL_PREFIX=${INSTALL_TO} \
+      -DPYBIND11_PYTHON_VERSION=3 \
+      -DCMAKE_BUILD_TYPE=Release \
+      ..
 popd
 
-INSTALL_TO=$HOME/.local/kungfu
 echo Step 5: Install headers and libraries to ${INSTALL_TO}
 pushd ./build && \
     cmake --build . --verbose --config Release && \
-    cmake --install . --prefix=${INSTALL_TO}
+    make install
 popd
