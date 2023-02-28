@@ -9,8 +9,10 @@
 #include <numeric>
 #include <stdexcept>
 #include <vector>
+#include <kungfu/yijinjing/time.h>
 
-namespace kungfudemo {
+namespace kungfu {
+namespace yijinjing {
 
 // ThreadUnsafePerCountTimer records every single call. It allows
 // more computation than ThreadUnsafeTimer, such as percentile
@@ -18,7 +20,7 @@ namespace kungfudemo {
 class ThreadUnsafePerCountTimer
 {
 public:
-    ThreadUnsafePerCountTimer(uint64_t max_call_count):
+    ThreadUnsafePerCountTimer(uint64_t max_call_count = 100):
         max_call_count_(max_call_count)
         , call_count_(0)
         , call_duration_ns_vec_(max_call_count, 0)
@@ -29,23 +31,29 @@ public:
     }
     ~ThreadUnsafePerCountTimer() = default;
 
+    void set_max_call_count(uint64_t max_call_count)
+    {
+        call_duration_ns_vec_.resize(max_call_count);
+        std::fill_n(std::back_inserter(call_duration_ns_vec_), max_call_count, 0);
+    }
+
     template<typename FuncT>
     void time_it(FuncT&& func)
     {
-        uint64_t begin = kungfu::yijinjing::time::now_in_nano();
+        uint64_t begin = ::kungfu::yijinjing::time::now_in_nano();
         func();
-        uint64_t end = kungfu::yijinjing::time::now_in_nano();
+        uint64_t end = ::kungfu::yijinjing::time::now_in_nano();
         uint64_t duration = (end - begin);
         call_duration_ns_vec_[call_count_] = duration;
         call_count_ += 1;
     }
 
-    uint64_t call_count()
+    uint64_t call_count() const
     {
         return call_count_;
     }
 
-    uint64_t total_time_ns()
+    uint64_t total_time_ns() const
     {
         return std::accumulate(
                 call_duration_ns_vec_.begin(),
@@ -53,21 +61,21 @@ public:
                 0);
     }
 
-    uint64_t max_time_ns()
+    uint64_t max_time_ns() const
     {
         return *(std::max_element(
                 call_duration_ns_vec_.begin(),
                 call_duration_ns_vec_.end()));
     }
 
-    uint64_t min_time_ns()
+    uint64_t min_time_ns() const
     {
         return *(std::min_element(
                 call_duration_ns_vec_.begin(),
                 call_duration_ns_vec_.end()));
     }
 
-    double avg_time_ns()
+    double avg_time_ns() const
     {
         if (call_count_ == 0)
         {
@@ -76,7 +84,7 @@ public:
         return ((double)total_time_ns() / call_count_);
     }
 
-    double quantile(double ntile)
+    double quantile(double ntile) const
     {
         if (ntile < 0 || ntile > 1.0) {
             throw std::invalid_argument("bad ntile value");
@@ -99,12 +107,12 @@ public:
         return (sorted[low] + sorted[high]) / 2.0; // Get average
     }
 
-    double total_time_ms()
+    double total_time_ms() const
     {
         return double(total_time_ns() / 1000000);
     }
 
-    const std::vector<uint64_t>& duration_seq() {
+    const std::vector<uint64_t>& duration_seq() const {
         return call_duration_ns_vec_;
     }
 
@@ -181,6 +189,7 @@ private:
     uint64_t min_call_ns_;
 };
 
+} // namespace yijinjing
 } // namespace kungfudemo
 
 #endif // _TIME_COUNTER_H_

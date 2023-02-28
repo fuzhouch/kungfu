@@ -117,15 +117,31 @@ namespace kungfu
 
             void writer::write_raw(int64_t trigger_time, int32_t msg_type, uintptr_t data, uint32_t length)
             {
+#ifdef KUNGFU_PERFORMANCE_TEST
+                frame_ptr frame;
+                open_frame_timer.time_it([&]{
+                    frame = open_frame(trigger_time, msg_type, length);
+                });
+                mmap_copy_timer.time_it([&] {
+                    memcpy(const_cast<void*>(frame->data_address()), reinterpret_cast<void*>(data), length);
+                });
+                close_frame_timer.time_it([&]{
+                    close_frame(length);
+                });
+#else // KUNGFU_PERFORMANCE_TEST
                 auto frame = open_frame(trigger_time, msg_type, length);
                 memcpy(const_cast<void*>(frame->data_address()), reinterpret_cast<void*>(data), length);
                 close_frame(length);
+#endif // KUNGFU_PERFORMANCE_TEST
             }
+
+            /*
             template<>
             void writer::write(int64_t trigger_time, int32_t msg_type, const std::string &data)
             {
                 write_raw(trigger_time, msg_type, reinterpret_cast<uintptr_t>(data.c_str()), data.length());
             }
+            */
 
             void writer::close_page(int64_t trigger_time)
             {

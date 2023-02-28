@@ -23,6 +23,7 @@
 #include <kungfu/yijinjing/journal/common.h>
 #include <kungfu/yijinjing/journal/frame.h>
 #include <kungfu/yijinjing/journal/page.h>
+#include <kungfu/yijinjing/timer.hpp>
 
 namespace kungfu
 {
@@ -171,6 +172,12 @@ namespace kungfu
                     close_frame(frame->copy_data<T>(data));
                 }
 
+                void write(int64_t trigger_time, int32_t msg_type, const std::string &data)
+                {
+                    write_raw(trigger_time, msg_type, reinterpret_cast<uintptr_t>(data.c_str()), data.length());
+                }
+
+
                 template<typename T>
                 void write_with_time(int64_t gen_time, int32_t msg_type, const T &data)
                 {
@@ -204,6 +211,12 @@ namespace kungfu
                 size_t size_to_write_;
 
                 void close_page(int64_t trigger_time);
+#ifdef KUNGFU_PERFORMANCE_TEST
+            public:
+                ::kungfu::yijinjing::ThreadUnsafePerCountTimer open_frame_timer;
+                ::kungfu::yijinjing::ThreadUnsafePerCountTimer mmap_copy_timer;
+                ::kungfu::yijinjing::ThreadUnsafePerCountTimer close_frame_timer;
+#endif // KUNGFU_PERFORMANCE_TEST
             };
         }
     }
