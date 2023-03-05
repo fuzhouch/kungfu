@@ -12,6 +12,9 @@ SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 SET(KFC_INSTALL_RPATH "$ORIGIN" "$ORIGIN/../../")
 SET(CMAKE_INSTALL_RPATH "${KFC_INSTALL_RPATH}")
 
+# For LSP support
+SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 IF (KF_SDK_HOME)
     MESSAGE("KF_SDK_HOME is set to ${KF_SDK_HOME}")
 ELSE(KF_SDK_HOME)
@@ -25,6 +28,7 @@ LINK_DIRECTORIES("${KF_SDK_HOME}/lib")
 ADD_EXECUTABLE(yijinjing-demo
     src/main.cpp
     src/server.cpp
+    src/client.cpp
     src/mimiclocator.cpp
     src/consoleprintpublisher.cpp)
 

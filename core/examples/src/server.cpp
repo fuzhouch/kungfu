@@ -9,6 +9,8 @@
 #include "consoleprintpublisher.hpp"
 #include "perftest.hpp"
 
+namespace kdemo = kungfudemo;
+
 void print_timer_data(const std::string& timer_name, const ky::ThreadUnsafePerCountTimer& timer)
 {
     std::cout << "==== BEGIN: " << timer_name << std::endl;
@@ -96,7 +98,7 @@ kjournal::writer_ptr run_server(uint64_t count)
 
     int64_t trigger_time = 0;
     int32_t msg_type = 1; // Biz type in kungfu/wingchun/msg.h
-    for (int i = 0; i < count; ++i) {
+    for (uint64_t i = 0; i < count; ++i) {
         std::stringstream data_stream;
         trigger_time = kungfu::yijinjing::time::now_in_nano();
         // Content to write
@@ -105,6 +107,7 @@ kjournal::writer_ptr run_server(uint64_t count)
             << ",time=" << trigger_time
             << ",data=hello";
 
+        std::cout << data_stream.str() << ", length = " << data_stream.str().length() << std::endl;
         writer->write(trigger_time, msg_type, data_stream.str());
     }
     return writer;
